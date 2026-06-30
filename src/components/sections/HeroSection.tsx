@@ -2,7 +2,10 @@
 
 import { useEffect, useRef } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import Button from "@/components/ui/Button";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
 import content from "@/content/shared/hero.json";
 
 export default function HeroSection() {
@@ -12,15 +15,22 @@ export default function HeroSection() {
     const el = illuRef.current;
     if (!el) return;
 
+    let rafId: number;
     const onScroll = () => {
-      const progress = Math.min(1, window.scrollY / 900);
-      el.style.opacity = String(1 - progress * 0.7);
-      el.style.transform = `scale(${1 - progress * 0.12})`;
+      cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        const progress = Math.min(1, window.scrollY / 900);
+        el.style.opacity = String(1 - progress * 0.7);
+        el.style.transform = `scale(${1 - progress * 0.12})`;
+      });
     };
 
     window.addEventListener("scroll", onScroll, { passive: true });
     onScroll();
-    return () => window.removeEventListener("scroll", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      cancelAnimationFrame(rafId);
+    };
   }, []);
 
   return (
@@ -31,12 +41,23 @@ export default function HeroSection() {
           <div className="w-[800px] h-[600px] rounded-full bg-primary/5 blur-3xl" />
         </div>
         <div className="relative mx-auto max-w-[1280px] flex flex-col items-center text-center gap-8">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-[12px] font-bold font-cabin uppercase tracking-widest">
-            {content.eyebrow}
-          </div>
-          <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-text-primary leading-tight max-w-4xl">
-            {content.titleStart}{" "}
-            <span className="text-primary">{content.titleAccent}</span> {content.titleEnd}
+          {content.announcement ? (
+            <Link
+              href={content.announcement.href}
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-[12px] font-bold font-cabin uppercase tracking-widest hover:bg-primary/15 transition-colors"
+            >
+              {content.announcement.label}
+              <FontAwesomeIcon icon={faArrowRight} className="w-2.5 h-2.5" />
+            </Link>
+          ) : (
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-[12px] font-bold font-cabin uppercase tracking-widest">
+              {content.eyebrow}
+            </div>
+          )}
+          <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-text-primary leading-none max-w-4xl">
+            {content.titleStart}
+            <br />
+            <span className="text-primary">{content.titleAccent}</span>
           </h1>
           <p className="text-text-secondary text-lg md:text-xl max-w-2xl">
             {content.description}
@@ -44,7 +65,7 @@ export default function HeroSection() {
           <div className="flex flex-col md:flex-row gap-4 self-stretch md:self-auto">
             <Button
               href={content.primaryCta.href}
-              external
+              external={content.primaryCta.external}
               size="lg"
               className="justify-center md:w-52"
             >
@@ -52,7 +73,7 @@ export default function HeroSection() {
             </Button>
             <Button
               href={content.secondaryCta.href}
-              external
+              external={content.secondaryCta.external}
               variant="secondary"
               size="lg"
               className="justify-center md:w-52"
@@ -71,6 +92,7 @@ export default function HeroSection() {
           width={2556}
           height={1882}
           priority
+          sizes="100vw"
           className="w-full h-auto rounded-xl"
         />
       </div>

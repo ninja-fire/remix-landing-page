@@ -3,7 +3,7 @@
 import { useState, Fragment } from "react";
 import Button from "@/components/ui/Button";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCheck, faMinus, faChevronDown } from "@fortawesome/free-solid-svg-icons";
+import { faCheck, faMinus, faChevronDown, faBuilding, faArrowRight, faGift, faTags } from "@fortawesome/free-solid-svg-icons";
 import content from "@/content/pricing.json";
 
 type Billing = "yearly" | "monthly";
@@ -21,6 +21,9 @@ function CellValue({ value }: { value: boolean | string }) {
 export default function PricingContent() {
   const [billing, setBilling] = useState<Billing>("yearly");
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+
+  const mainPlans = content.plans.filter((p) => p.id !== "team");
+  const teamPlan = content.plans.find((p) => p.id === "team");
 
   return (
     <>
@@ -58,12 +61,12 @@ export default function PricingContent() {
             </div> */}
           </div>
 
-          {/* Pricing cards — 2×2 grid */}
-          <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-10">
-            {content.plans.map((plan) => (
+          {/* Pricing cards — 3-column grid (Free / Starter / Pro) */}
+          <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-x-4 gap-y-10">
+            {mainPlans.map((plan) => (
               <div
                 key={plan.id}
-                className={`relative flex flex-col gap-6 rounded-2xl px-8 py-6 ${
+                className={`relative flex flex-col gap-8 rounded-2xl px-8 py-8 ${
                   plan.featured
                     ? "bg-layer-1 border-2 border-primary"
                     : "bg-layer-1 border border-border"
@@ -80,33 +83,58 @@ export default function PricingContent() {
                 <div className="flex flex-col gap-4">
                   <div className="flex flex-col gap-2">
                     <h2 className="text-2xl font-bold text-text-primary">{plan.name}</h2>
-                    <p className="text-[14px] text-text-secondary">{plan.tagline}</p>
+                    {plan.tagline && <p className="text-[14px] text-text-secondary">{plan.tagline}</p>}
                   </div>
-                  {/* <div className="flex items-center gap-4">
+
+                  <div className="border-t border-border" />
+
+                  {/* Price row — strikethrough original + actual price */}
+                  <div className="flex items-baseline gap-2">
+                    {plan.priceOriginal && (
+                      <span className="text-[20px] font-bold text-text-quaternary/60 line-through leading-none">
+                        {plan.priceOriginal}
+                      </span>
+                    )}
                     <span className="text-[32px] font-bold text-text-primary leading-none">
                       {plan.price[billing]}
                     </span>
                     {plan.priceNote[billing] && (
-                      <span className="text-[12px] text-text-tertiary leading-tight flex-1">
+                      <span className="text-[12px] text-text-tertiary leading-tight">
                         {plan.priceNote[billing]}
                       </span>
                     )}
-                  </div> */}
+                  </div>
+
+                  {/* Launch offer tag */}
+                  {plan.offerTag && (
+                    <div className="inline-flex items-center gap-1.5 self-start rounded-full bg-primary/10 border border-primary/20 px-3 py-1">
+                      <FontAwesomeIcon icon={faTags} className="w-3 h-3 text-primary" />
+                      <span className="text-[11px] font-bold text-primary">{plan.offerTag}</span>
+                    </div>
+                  )}
+
+                  {/* Credit highlight chip */}
+                  {plan.creditHighlight && (
+                    <div className="inline-flex items-center gap-1.5 self-start rounded-full bg-primary/10 border border-primary/20 px-3 py-1">
+                      <FontAwesomeIcon icon={faGift} className="w-3 h-3 text-primary" />
+                      <span className="text-[11px] font-bold text-primary">{plan.creditHighlight}</span>
+                    </div>
+                  )}
                 </div>
 
                 {/* CTA */}
                 {plan.featured ? (
-                  <Button disabled external={plan.ctaHref.startsWith("http")} size="md">
+                  <Button href={plan.ctaHref} external={plan.ctaHref.startsWith("http")} size="md">
                     {plan.cta}
                   </Button>
                 ) : (
-                  <Button disabled external={plan.ctaHref.startsWith("http")} variant="secondary" size="md">
+                  <Button href={plan.ctaHref} external={plan.ctaHref.startsWith("http")} variant="secondary" size="md">
                     {plan.cta}
                   </Button>
                 )}
 
                 {/* Features */}
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-3">
                   {plan.featuresHeader && (
                     <p className="text-[14px] font-bold text-text-primary mb-1">{plan.featuresHeader}</p>
                   )}
@@ -120,6 +148,25 @@ export default function PricingContent() {
               </div>
             ))}
           </div>
+
+          {/* Team & more — enterprise strip */}
+          {teamPlan && (
+            <a
+              href={teamPlan.ctaHref}
+              className="w-full flex items-center justify-between gap-4 rounded-xl px-6 py-4 bg-layer-1 border border-border hover:border-primary/40 transition-colors group"
+            >
+              <span className="flex items-center gap-3">
+                <FontAwesomeIcon icon={faBuilding} className="w-4 h-4 text-text-tertiary shrink-0" />
+                <span className="flex flex-col gap-0.5">
+                  <strong className="text-[15px] font-bold text-text-primary">{teamPlan.name}</strong>
+                  <span className="text-[13px] text-text-secondary">{teamPlan.tagline}</span>
+                </span>
+              </span>
+              <span className="flex items-center gap-2 text-[13px] font-semibold text-primary whitespace-nowrap group-hover:gap-3 transition-all">
+                Contact us <FontAwesomeIcon icon={faArrowRight} className="w-3 h-3" />
+              </span>
+            </a>
+          )}
         </div>
       </section>
 
@@ -132,7 +179,7 @@ export default function PricingContent() {
 
           <div className="hidden md:block">
             {/* Sticky header — one single div that sticks, with its own grid */}
-            <div className="sticky top-16 z-40 bg-background border-b border-border grid grid-cols-[2fr_1fr_1fr_1fr_1fr]">
+            <div className="sticky top-16 z-40 bg-background border-b border-border grid grid-cols-[2fr_1fr_1fr_1fr]">
               <div className="py-4 pr-8 font-bold text-[16px] text-text-primary">{content.comparison.featuresLabel}</div>
               {content.comparison.plans.map((plan) => (
                 <div key={plan} className="py-2 px-2 flex flex-col items-center justify-center gap-2">
@@ -150,7 +197,7 @@ export default function PricingContent() {
             </div>
 
             {/* Feature rows — separate grid with matching columns */}
-            <div className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr]">
+            <div className="grid grid-cols-[2fr_1fr_1fr_1fr]">
               {content.comparison.rows.map((row, i) => (
                 <Fragment key={row.name}>
                   <div className={`py-3 pr-8 text-[14px] text-text-primary border-b border-border/50 flex items-center ${i % 2 !== 0 ? "bg-layer-1/30" : ""}`}>
